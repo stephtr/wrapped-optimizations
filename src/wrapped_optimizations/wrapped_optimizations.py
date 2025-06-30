@@ -25,7 +25,7 @@ class WrappedFunction:
         self.const_names = const_names
         self.const_values = const_values
 
-    def __call__(self, params_list):
+    def __call__(self, params_list, *additional_args):
         params = _unflatten_params(params_list, self.params_shape, self.params_names, self.const_names, self.const_values)
         nth_parameter = 0
         def use_param(shape, name=None, bounds=(-np.inf, np.inf)):
@@ -35,7 +35,7 @@ class WrappedFunction:
             return params[index]
         def use_const(value, name=None):
             return value
-        return self.func_to_optimize(use_param, use_const)
+        return self.func_to_optimize(use_param, use_const, *additional_args)
 
 def differential_evolution(func, **kwargs):
     params_shape = []
@@ -63,7 +63,7 @@ def differential_evolution(func, **kwargs):
         constants_values.append(value)
         return value
     
-    func(initial_use_param, initial_use_const)
+    func(initial_use_param, initial_use_const, *kwargs.get('args', []))
 
     wrapped_func = WrappedFunction(func, params_shape, params_names, constants_names, constants_values)
 
